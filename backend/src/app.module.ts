@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TestingController } from './testing/testing.controller';
+import { DataSource } from 'typeorm';
+import { User } from './user/user.entity';
 
 @Module({
     imports: [
@@ -13,14 +15,12 @@ import { TestingController } from './testing/testing.controller';
         username: 'root',
         password: '',
         database: 'datatable',
-        entities: [],
-        synchronize: true,
+        entities: [User],
       }),
-    ],
-    controllers: [
-      AppController,
-      TestingController
-    ],
+      UserModule],
+    controllers: [AppController],
     providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {}
+}
