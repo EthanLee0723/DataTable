@@ -3,6 +3,7 @@
 
 import { Table,Button } from 'react-bootstrap';
 import { useEffect, useState } from "react"
+// import bootstrap from 'bootstrap';
 
 
 const tblColName = [
@@ -22,9 +23,7 @@ export default function Home() {
     const [listUserTblRows, setListUserTblRows] = useState([]);
 
     useEffect(() => {
-        fetch('http://localhost:3000/user/getAllUser',{
-        method: "get",
-        })
+        fetch('http://localhost:3000/user/getAllUser')
         .then(response => response.json())
         .then(data => {
             setListUserTblRows(data.map(user => {
@@ -40,6 +39,12 @@ export default function Home() {
         })
     }, []);
 
+    function showModal(element)
+    {
+        let myModal = new bootstrap.Modal(document.getElementById('mdlCreateUser'));
+        myModal.show();
+    }
+
     return (
         <>
             <div id='divContainer'>
@@ -48,7 +53,7 @@ export default function Home() {
                     <div className='col'>
                         <div className='row'>
                             <div className='col-auto'>
-                                <Button variant='primary'>Create user</Button>
+                                <Button variant='primary' data-bs-target="#mdlCreateUser" onClick={showModal(this)}>Create user</Button>
                             </div>
                             <div className='col-auto'>
                                 <Button variant='danger' disabled>Delete user</Button>
@@ -77,8 +82,6 @@ export default function Home() {
                         </div>
                     </div>
                 </div>
-
-
                 <div id="divTblContainer" className='table-responsive'>
                     <Table striped bordered hover>
                         <thead>
@@ -93,9 +96,24 @@ export default function Home() {
                     </Table>
                 </div>
             </div>
-            <Modal>
-                
-            </Modal>
+            <div class="modal" id="mdlCreateUser">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Modal title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Modal body text goes here.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                    </div>
+                </div>
+            </div>
         </>
     );
 }
+

@@ -11,7 +11,10 @@ export default function RootLayout({ children }) {
             <head>
                 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
             </head>
-            <body>{children}</body>
+            <body>
+                {children}
+                <script src='https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js'></script>
+            </body>
         </html>
     )
 }
