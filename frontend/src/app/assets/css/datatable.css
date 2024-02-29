@@ -1,0 +1,26 @@
+body
+{
+    background-color: lightgray;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+    margin: 0 0;
+}
+
+#divContainer
+{
+    padding: 1rem 2rem;
+    border-radius: .5rem;
+    height: 80%;
+    width: 80%;
+    background-color: white;
+    box-shadow: 0 0 3px gray;
+    cursor: pointer;
+
+    #divTblContainer thead th i
+    {
+        float: right !important;
+    }
+}

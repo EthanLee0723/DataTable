@@ -21,8 +21,7 @@ export class UserService {
         await queryRunner.startTransaction();
 
         const user = new User;
-        user.first_name = "Testing";
-        user.last_name = "shdf";
+        user.full_name = "Testing";
         user.email = "dsf";
         user.date_of_birth = new Date;
         user.password = "sdfhdsf";
