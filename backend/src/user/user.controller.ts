@@ -1,4 +1,4 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { Controller, Get, Post, Req } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import moment from 'moment';
@@ -16,24 +16,22 @@ export class UserController {
             return {
                 id: user.id,
                 full_name: user.full_name,
-                date_of_birth: `${dob.getDate()}-${dob.getMonth()}-${dob.getFullYear()}`,
+                date_of_birth: `${dob.getDate()}-${dob.getMonth()+1}-${dob.getFullYear()}`,
                 email: user.email,
-                created_at: `${created_at.getDate()}-${created_at.getMonth()}-${created_at.getFullYear()} ${created_at.getHours()}:${created_at.getMinutes()}:${created_at.getSeconds()}`
+                created_at: `${created_at.getDate()}-${created_at.getMonth()+1}-${created_at.getFullYear()} ${created_at.getHours()}:${created_at.getMinutes()}:${created_at.getSeconds()}`
             }
         });
     }
 
 
     @Post('createUser')
-    async createUser(){
-        try {
+    async createUser(@Req() request){
+        return await this.userService.createUser(request.body);
+    }
 
-            return await this.userService.createUser()
-            
-            return 'Records created successfully!';
-        } 
-        catch (error) {
-            return `Error creating records: ${error.message}`;
-        }
+    @Post('delUserById')
+    async delUserById(@Req() request)
+    {
+        return await this.userService.delUserById(request.body);
     }
 }

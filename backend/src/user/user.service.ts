@@ -14,17 +14,17 @@ export class UserService {
                          .where("user.deleted_at IS NULL");
     }
 
-    async createUser()
+    async createUser(dataToStore)
     {
         const queryRunner = this.dataSource.createQueryRunner();
         
         await queryRunner.startTransaction();
 
         const user = new User;
-        user.full_name = "Testing";
-        user.email = "dsf";
-        user.date_of_birth = new Date;
-        user.password = "sdfhdsf";
+        user.full_name = dataToStore.full_name;
+        user.email = dataToStore.email;
+        user.date_of_birth = new Date(dataToStore.date_of_birth);
+        user.password = dataToStore.password;
 
         try
         {
@@ -42,16 +42,26 @@ export class UserService {
         }
     }
 
-    async updateUserById()
+    async delUserById(listUserId)
     {
         await this.dataSource
                   .createQueryBuilder()
                   .update(User)
-                  .set({first_name: "Ethan",
-                            last_name: "Lee",
-                        })
-                  .where("id = :id", {id:1})
+                  .set({deleted_at: new Date()})
+                  .where("id in (:id)", {id:listUserId})
                   .execute();
-                
+    }
+
+    dateStringFormatter(strDate,dateFormat,formatToConvert)
+    {
+        let arrDate = strDate.split("-");
+        if(dateFormat === "YYYY-M-D")
+        {
+            if(formatToConvert === "D-M-YYYY")
+            {
+                arrDate = arrDate.reverse();
+                return `${arrDate[0]}-${arrDate[1]}-${arrDate[2]}`
+            }
+        }
     }
 }
