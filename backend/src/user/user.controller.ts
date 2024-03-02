@@ -10,8 +10,11 @@ export class UserController {
     async getUserByFilter(@Req() request)
     {
         const allSearchableCol = ["full_name","date_of_birth","email","created_at"];
+        const tblFilterConditions = request.body.filter;
         let colToSearch = [request.body.search.column];
-        const listAllUsers = (await this.userService.generalQuery()).orderBy(request.body.sorting.column,request.body.sorting.order).getMany();
+
+        let listAllUsers = (await this.userService.generalQuery()).orderBy(request.body.sorting.column,request.body.sorting.order).getMany();
+
         let userRecords = (await listAllUsers).map(user=>{
             const dob = new Date(user.date_of_birth);
             const created_at = new Date(user.created_at);
@@ -39,6 +42,40 @@ export class UserController {
             })
             return matchesFilter;
         })
+
+        userRecords = userRecords.filter((user)=>{
+            let matchesDateOfBirthYear = false;
+            let matchesCreatedDateYear = false;
+
+            if(!tblFilterConditions.date_of_birth.length && !tblFilterConditions.created_at.length)
+            {
+                return true;
+            }
+
+            if(tblFilterConditions.date_of_birth.length)
+            {
+                tblFilterConditions.date_of_birth.forEach((val)=>{
+                    const userDateOfBirthYear = user.date_of_birth.split("-")[2];
+                    if(userDateOfBirthYear === val)
+                    {
+                        matchesDateOfBirthYear = true;
+                    }
+                })
+            }
+
+            if(tblFilterConditions.created_at.length)
+            {
+                tblFilterConditions.created_at.forEach((val)=>{
+                    const userCreatedAtYear = user.created_at.split("-")[2].split(" ")[0];
+                    if(userCreatedAtYear === val)
+                    {
+                        matchesCreatedDateYear = true;
+                    }
+                })
+            }
+            return matchesDateOfBirthYear || matchesCreatedDateYear
+        })
+        
 
 
         return userRecords;
