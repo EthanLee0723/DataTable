@@ -8,7 +8,7 @@ import { useEffect, useState } from "react"
 const defaultTblFilter = {
     sorting:{column:"full_name", order:"ASC"},
     search: {column:"all_columns",value:""},
-    filter:  []
+    filter:  {date_of_birth:[] ,created_at: []}
 }
 
 const tblColName = [
@@ -47,7 +47,7 @@ const createUserInputElements = createUserInput.map(input => {
 export default function Home() {
     const [listUserTblRows, setListUserTblRows] = useState();
 
-    const [tblSearchConditions, setTblSearchConditions] = useState(defaultTblFilter);
+    const [tblSearchConditions, setTblSearchConditions] = useState(deepCopyObject(defaultTblFilter));
 
     const [mdlEditUserInputVal, setMdlEditUserInputVal] = useState({
         id:"",
@@ -67,6 +67,10 @@ export default function Home() {
     const [isLoading, setLoading] = useState("none");
 
     const [idBtnDisabled, setDisabledStatus] = useState(true);
+
+    const [dateOfBirthFilterOpt, setDateOfBirthFilterOpt] =  useState([]);
+
+    const [createdDateFilterOpt, setCreatedDateFilterOpt] =  useState([]);
 
     const showLoading = () => setLoading("flex");
     const stopLoading = () => setLoading("none");
@@ -94,6 +98,28 @@ export default function Home() {
                     {col.text}{col.text === "Edit"?null:<i className={"fa-solid "+colSortIcon}></i>}
                 </th>)
     });
+
+    const mdlDateOfBirthFilterOpt = dateOfBirthFilterOpt.map((opt) => {
+        let isInputChecked = false;
+        tblSearchConditions.filter.date_of_birth.forEach((val)=>{
+            if(opt === val)
+            {
+                isInputChecked = true;
+            }
+        })
+        return (<div><input data-filter-val={opt} defaultChecked={isInputChecked} type="checkbox"/><label>{opt}</label></div>)
+    })
+
+    const mdlCreatedDateFilterOpt = createdDateFilterOpt.map((opt) => {
+        let isInputChecked = false;
+        tblSearchConditions.filter.created_at.forEach((val)=>{
+            if(opt === val)
+            {
+                isInputChecked = true;
+            }
+        })
+        return (<div><input data-filter-val={opt} defaultChecked={isInputChecked} type="checkbox"/><label>{opt}</label></div>)
+    })
 
     let editUserInputElements = createUserInput.map((input,ind) => {
         let inputType = "text";
@@ -216,6 +242,41 @@ export default function Home() {
         }
     }
 
+    function getFilterOptions()
+    {
+        showLoading();
+        fetch('http://localhost:3000/user/getUserByFilter',{
+            method:"post",
+            headers: {
+                'Content-Type': "application/json"
+            },
+            body: JSON.stringify(defaultTblFilter)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            if(data)
+            {
+                let dobFilterOpt = [];
+                let createdDateFilterOptons = [];
+
+                data.forEach((val)=>{
+                    const dobYearOpt = val.date_of_birth.split("-")[2];
+                    const createdDateYearOpt = val.created_at.split("-")[2].split(" ")[0];
+                    dobFilterOpt.push(dobYearOpt);
+                    createdDateFilterOptons.push(createdDateYearOpt);
+                })
+
+                dobFilterOpt = [...new Set(dobFilterOpt)];
+                createdDateFilterOptons = [...new Set(createdDateFilterOptons)];
+
+                setDateOfBirthFilterOpt(dobFilterOpt);
+                setCreatedDateFilterOpt(createdDateFilterOptons);
+            }
+            stopLoading();
+        })
+    }
+
     function getUserRecords()
     {
         showLoading();
@@ -231,6 +292,7 @@ export default function Home() {
             stopLoading();
             if(data)
             {
+                getFilterOptions();
                 setListUserTblRows(data.map((user) => {
                     let splitDateOfBirth = user.date_of_birth.split("-");
                     splitDateOfBirth.reverse();
@@ -298,7 +360,27 @@ export default function Home() {
 
     function applyFilter()
     {
+        let filterCondition = tblSearchConditions;
 
+        let selDateOfBirthFilter = [];
+        let selCreatedDateFilter = [];
+        document.querySelectorAll(".dateOfBirthOptContainer input:checked").forEach((val)=>{
+            selDateOfBirthFilter.push(val.getAttribute("data-filter-val"));
+        })
+
+        document.querySelectorAll(".createdDateOptContainer input:checked").forEach((val)=>{
+            selCreatedDateFilter.push(val.getAttribute("data-filter-val"));
+        })
+        filterCondition.filter.date_of_birth = selDateOfBirthFilter;
+        filterCondition.filter.created_at = selCreatedDateFilter;
+
+        setTblSearchConditions(filterCondition);
+        closeTblFilterMdl();
+    }
+
+    function deepCopyObject(obj)
+    {
+        return JSON.parse(JSON.stringify(obj));
     }
 
     useEffect(() => {
@@ -422,11 +504,17 @@ export default function Home() {
                     <Modal.Title>Filter By</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className=''>
-                    <div>
-                        <strong>Date of Birth Year:</strong>
+                    <div className='filterCategoryContainer'>
+                        <h6>Date of Birth Year:</h6>
+                        <div className='filterOptContainer dateOfBirthOptContainer'>
+                            {mdlDateOfBirthFilterOpt}
+                        </div>
                     </div>
-                    <div>
-                        <strong>Created Date Year:</strong>
+                    <div className='filterCategoryContainer'>
+                        <h6>Created Date Year:</h6>
+                        <div className='filterOptContainer createdDateOptContainer'>
+                            {mdlCreatedDateFilterOpt}
+                        </div>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
