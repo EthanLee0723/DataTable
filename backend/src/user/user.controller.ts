@@ -6,10 +6,10 @@ import moment from 'moment';
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
-    @Get('getAllUser')
-    async getAllUser()
+    @Get('getUserByFilter')
+    async getUserByFilter(@Req() request)
     {
-        const listAllUsers = (await this.userService.generalQuery()).getMany();
+        const listAllUsers = (await this.userService.generalQuery()).orderBy("full_name","ASC").getMany();
         return (await listAllUsers).map(user=>{
             const dob = new Date(user.date_of_birth);
             const created_at = new Date(user.created_at);
@@ -32,6 +32,13 @@ export class UserController {
     @Post('delUserById')
     async delUserById(@Req() request)
     {
+        console.log(request.body);
         return await this.userService.delUserById(request.body);
+    }
+
+    @Post("updateUserById")
+    async updateUserById(@Req() request)
+    {
+        return await this.userService.updatedUserBydId(request.body);
     }
 }

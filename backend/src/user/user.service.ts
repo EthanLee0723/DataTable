@@ -33,7 +33,6 @@ export class UserService {
         }
         catch(err)
         {
-            console.log(err);
             await queryRunner.rollbackTransaction()
         }
         finally
@@ -49,6 +48,16 @@ export class UserService {
                   .update(User)
                   .set({deleted_at: new Date()})
                   .where("id in (:id)", {id:listUserId})
+                  .execute();
+    }
+
+    async updatedUserBydId(dataToUpdate)
+    {
+        await this.dataSource
+                  .createQueryBuilder()
+                  .update(User)
+                  .set(dataToUpdate)
+                  .where("id = :id", {id:dataToUpdate.id})
                   .execute();
     }
 
