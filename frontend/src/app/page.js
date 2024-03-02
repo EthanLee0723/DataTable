@@ -273,7 +273,7 @@ export default function Home() {
     {
         const colNameToSort = ev.target.getAttribute("data-col-name");
         let filterConditions = tblSearchConditions;
-        if(filterConditions.sorting.column = colNameToSort)
+        if(filterConditions.sorting.column === colNameToSort)
         {
             filterConditions.sorting.order = filterConditions.sorting.order === "ASC"?"DESC":"ASC";
         }
