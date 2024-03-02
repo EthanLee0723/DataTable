@@ -6,11 +6,13 @@ import moment from 'moment';
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
-    @Get('getUserByFilter')
+    @Post('getUserByFilter')
     async getUserByFilter(@Req() request)
     {
-        const listAllUsers = (await this.userService.generalQuery()).orderBy("full_name","ASC").getMany();
-        return (await listAllUsers).map(user=>{
+        const allSearchableCol = ["full_name","date_of_birth","email","created_at"];
+        let colToSearch = [request.body.search.column];
+        const listAllUsers = (await this.userService.generalQuery()).orderBy(request.body.sorting.column,request.body.sorting.order).getMany();
+        let userRecords = (await listAllUsers).map(user=>{
             const dob = new Date(user.date_of_birth);
             const created_at = new Date(user.created_at);
             return {
@@ -21,6 +23,25 @@ export class UserController {
                 created_at: `${created_at.getDate()}-${created_at.getMonth()+1}-${created_at.getFullYear()} ${created_at.getHours()}:${created_at.getMinutes()}:${created_at.getSeconds()}`
             }
         });
+
+        if(request.body.search.column === "all_columns")
+        {
+            colToSearch = allSearchableCol;
+        }
+
+        userRecords = userRecords.filter((user)=>{
+            let matchesFilter = false;
+            colToSearch.forEach((val)=>{
+                if(!request.body.search.value || user[val].includes(request.body.search.value))
+                {
+                    matchesFilter = true;
+                }
+            })
+            return matchesFilter;
+        })
+
+
+        return userRecords;
     }
 
 
@@ -32,7 +53,6 @@ export class UserController {
     @Post('delUserById')
     async delUserById(@Req() request)
     {
-        console.log(request.body);
         return await this.userService.delUserById(request.body);
     }
 

@@ -76,6 +76,17 @@ body
     }
 }
 
+#mdlTblFilter .modal-body
+{
+    height: 50vh;
+    
+    & div
+    {
+        height: 50%;
+        overflow-y: auto;
+    }
+}
+
 
 @keyframes spin 
 {

@@ -5,12 +5,18 @@ import { useEffect, useState } from "react"
 // import bootstrap from 'bootstrap';
 
 
+const defaultTblFilter = {
+    sorting:{column:"full_name", order:"ASC"},
+    search: {column:"all_columns",value:""},
+    filter:  []
+}
+
 const tblColName = [
-    "Full Name",
-    "Date of Birth",
-    "Email",
-    "Created Date",
-    "Edit"
+    {name: "full_name",text:"Full Name"},
+    {name: "date_of_birth",text:"Date of Birth"},
+    {name: "email",text:"Email"},
+    {name: "created_at",text:"Created Date"},
+    {name: "edit",text:"Edit"}
 ]
 
 const createUserInput = [
@@ -19,10 +25,7 @@ const createUserInput = [
     {name: "password" ,text: "Password" },
     {name: "date_of_birth" ,text: "Date of Birth" },
 ]
-
-let tblColHeader =  tblColName.map(col => <th>{col}{col === "Edit"?<i className="fa-solid fa-sort-down"></i>:null}</th>);
-
-const listOptSearchByCol = tblColName.map(col => <option>{col}</option>)
+const listOptSearchByCol = tblColName.map(col => <option value={col.name}>{col.text}</option>)
 
 const createUserInputElements = createUserInput.map(input => {
     let inputType = "text";
@@ -44,6 +47,7 @@ const createUserInputElements = createUserInput.map(input => {
 export default function Home() {
     const [listUserTblRows, setListUserTblRows] = useState();
 
+    const [tblSearchConditions, setTblSearchConditions] = useState(defaultTblFilter);
 
     const [mdlEditUserInputVal, setMdlEditUserInputVal] = useState({
         id:"",
@@ -57,6 +61,8 @@ export default function Home() {
     const [delUserMdlShowStatus, setDelUserMdlShowStatus] = useState(false);
 
     const [editUserMdlShowStatus,setEditUserMdlShowStatus] = useState(false);
+
+    const [tblFilterShowStatus,setTblFilterShowStatus] = useState(false);
 
     const [isLoading, setLoading] = useState("none");
 
@@ -73,6 +79,21 @@ export default function Home() {
 
     const showDelUserMdl = () => setDelUserMdlShowStatus(true);
     const closeDelUserMdl = () => setDelUserMdlShowStatus(false);
+
+    const showTblFilterMdl = () => setTblFilterShowStatus(true);
+    const closeTblFilterMdl = () => setTblFilterShowStatus(false);
+
+    const tblColHeader =  tblColName.map(col => {
+        let colSortIcon = "fa-sort-down";
+        if(tblSearchConditions.sorting.column === col.name && tblSearchConditions.sorting.order === "DESC")
+        {
+            colSortIcon = "fa-sort-up";
+        }
+
+        return (<th data-col-name={col.name}  onClick={col.text === "Edit"?null:changeColSortOrder}>
+                    {col.text}{col.text === "Edit"?null:<i className={"fa-solid "+colSortIcon}></i>}
+                </th>)
+    });
 
     let editUserInputElements = createUserInput.map((input,ind) => {
         let inputType = "text";
@@ -198,7 +219,13 @@ export default function Home() {
     function getUserRecords()
     {
         showLoading();
-        fetch('http://localhost:3000/user/getUserByFilter')
+        fetch('http://localhost:3000/user/getUserByFilter',{
+            method:"post",
+            headers: {
+                'Content-Type': "application/json"
+            },
+            body: JSON.stringify(tblSearchConditions)
+        })
         .then(response => response.json())
         .then(data => {
             stopLoading();
@@ -242,6 +269,38 @@ export default function Home() {
         setMdlEditUserInputVal(newInputVal);
     }
 
+    function changeColSortOrder(ev)
+    {
+        const colNameToSort = ev.target.getAttribute("data-col-name");
+        let filterConditions = tblSearchConditions;
+        if(filterConditions.sorting.column = colNameToSort)
+        {
+            filterConditions.sorting.order = filterConditions.sorting.order === "ASC"?"DESC":"ASC";
+        }
+        else
+        {
+            filterConditions.sorting.order = "DESC";
+        }
+
+        filterConditions.sorting.column = colNameToSort;
+        setTblSearchConditions(filterConditions);
+        getUserRecords();
+    }
+
+    function getTblDataBySearch(ev)
+    {
+        let filterConditions = tblSearchConditions;
+        filterConditions.search.column = document.querySelector("#selSearchByCol").value;
+        filterConditions.search.value = document.querySelector("#inSearchByCol").value;
+        setTblSearchConditions(filterConditions);
+        getUserRecords();
+    }
+
+    function applyFilter()
+    {
+
+    }
+
     useEffect(() => {
         getUserRecords();
     }, []);
@@ -274,19 +333,19 @@ export default function Home() {
                     <div className='col-auto'>
                         <div className='row'>
                             <div className='col-auto'>
-                            <select className='form-control'>
-                                <option>All columns</option>
+                            <select id="selSearchByCol" defaultValue={tblSearchConditions.search.column} className='form-control'>
+                                <option value="all_columns">All columns</option>
                                 {listOptSearchByCol}
                             </select>
                             </div>
                             <div className='col-auto'>
-                                <input placeholder='Search' className='form-control'/>
+                                <input id="inSearchByCol" defaultValue={tblSearchConditions.search.value} placeholder='Search' className='form-control'/>
                             </div>
                             <div className='col-auto'>
-                                <Button className="fa-solid fa-filter h-100" variant='outline-primary'></Button>
+                                <Button className="fa-solid fa-filter h-100" variant='outline-primary' onClick={showTblFilterMdl}></Button>
                             </div>
                             <div className='col-auto'>
-                                <Button className="fa-solid fa-magnifying-glass h-100" variant='outline-primary'></Button>
+                                <Button className="fa-solid fa-magnifying-glass h-100" variant='outline-primary' onClick={getTblDataBySearch}></Button>
                             </div>
                         </div>
                     </div>
@@ -353,6 +412,28 @@ export default function Home() {
                         Cancel
                     </Button>
                     <Button variant="primary" onClick={updatedUserBydId}>
+                        Confirm
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            <Modal id="mdlTblFilter" centered show={tblFilterShowStatus} onHide={closeTblFilterMdl}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Filter By</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className=''>
+                    <div>
+                        <strong>Date of Birth Year:</strong>
+                    </div>
+                    <div>
+                        <strong>Created Date Year:</strong>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={closeTblFilterMdl}>
+                        Cancel
+                    </Button>
+                    <Button variant="primary" onClick={applyFilter}>
                         Confirm
                     </Button>
                 </Modal.Footer>
